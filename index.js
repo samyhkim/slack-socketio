@@ -33,7 +33,9 @@ namespaces.forEach((namespace) => {
     nsSocket.emit("nsRoomLoad", namespace.rooms);
     nsSocket.on("joinRoom", (roomToJoin, numberOfUsersCallback) => {
       // deal with history...once we have it
-      nsSocket.join(roomToJoin);
+      const roomTitle = Object.keys(nsSocket.rooms)[1];
+      nsSocket.leave(roomTitle); // leave whatever room user was in
+      nsSocket.join(roomToJoin); // join new room
       // io.of("/wiki")
       //   .in(roomToJoin)
       //   .clients((error, clients) => {
@@ -73,7 +75,6 @@ namespaces.forEach((namespace) => {
       const nsRoom = namespace.rooms.find((room) => {
         return room.roomTitle === roomTitle;
       });
-      console.log(nsRoom);
       nsRoom.addMessage(fullMsg);
       io.of(namespace.endpoint).to(roomTitle).emit("messageToClients", fullMsg);
     });
