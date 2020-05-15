@@ -40,6 +40,10 @@ namespaces.forEach((namespace) => {
         .clients((error, clients) => {
           numberOfUsersCallback(clients.length);
         });
+      const nsRoom = namespaces[0].rooms.find((room) => {
+        return room.roomTitle === roomToJoin;
+      });
+      nsSocket.emit("historyCatchUp", nsRoom.history);
     });
 
     // server receieved message from client
@@ -58,6 +62,12 @@ namespaces.forEach((namespace) => {
       // the user will be in the 2nd room in the object list
       // this is bc the socket ALWAYS joins its own room on connection
       const roomTitle = Object.keys(nsSocket.rooms)[1];
+      // we need to find the Room object for this room
+      const nsRoom = namespaces[0].rooms.find((room) => {
+        return room.roomTitle === roomTitle;
+      });
+      console.log(nsRoom);
+      nsRoom.addMessage(fullMsg);
       io.of("/wiki").to(roomTitle).emit("messageToClients", fullMsg);
     });
   });
