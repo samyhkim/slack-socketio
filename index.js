@@ -25,34 +25,26 @@ io.of("/").on("connection", (socket) => {
 
 // add a connection listener to each namespace
 namespaces.forEach((namespace) => {
-  // console.log(namespace);
   io.of(namespace.endpoint).on("connection", (nsSocket) => {
-    console.log(`${nsSocket.id} has join ${namespace.endpoint}`);
     // a socket has connected to one of our chat group namespaces
     // send that ns group info back
     nsSocket.emit("nsRoomLoad", namespace.rooms);
-    nsSocket.on("joinRoom", (roomToJoin, numberOfUsersCallback) => {
-      // deal with history...once we have it
-      const roomTitle = Object.keys(nsSocket.rooms)[1];
-      nsSocket.leave(roomTitle); // leave whatever room user was in
-      nsSocket.join(roomToJoin); // join new room
-      // io.of("/wiki")
-      //   .in(roomToJoin)
-      //   .clients((error, clients) => {
-      //     numberOfUsersCallback(clients.length);
-      //   });
+
+    nsSocket.on("joinRoom", (roomToJoin) => {
+      const roomToLeave = Object.keys(nsSocket.rooms)[1];
+      // leave whatever room user was in
+      nsSocket.leave(roomToLeave);
+      updateUsersInRoom(namespace, roomToJoin);
+      // join new room
+      nsSocket.join(roomToJoin);
+      // get handle on joined room
       const nsRoom = namespace.rooms.find((room) => {
         return room.roomTitle === roomToJoin;
       });
+
+      // update room's history of messages
       nsSocket.emit("historyCatchUp", nsRoom.history);
-      // send back the number of users in this room to ALL sockets connected to this room
-      io.of(namespace.endpoint)
-        .in(roomToJoin)
-        .clients((error, clients) => {
-          io.of(namespace.endpoint)
-            .in(roomToJoin)
-            .emit("updateMembers", clients.length);
-        });
+      updateUsersInRoom(namespace, roomToJoin);
     });
 
     // server receieved message from client
@@ -64,19 +56,29 @@ namespaces.forEach((namespace) => {
         username: "sam",
         avatar: "https://via.placeholder.com/30",
       };
-      // send this message to ALL the sockets that are in the room that THIs socket is in
-      // how can we find out what room THIS socket is in?
-      // console.log(nsSocket.rooms);
 
       // the user will be in the 2nd room in the object list
       // this is bc the socket ALWAYS joins its own room on connection
       const roomTitle = Object.keys(nsSocket.rooms)[1];
-      // we need to find the Room object for this room
       const nsRoom = namespace.rooms.find((room) => {
         return room.roomTitle === roomTitle;
       });
+
+      // add message to room's history
       nsRoom.addMessage(fullMsg);
+      // send this message to ALL the sockets that are in the room
       io.of(namespace.endpoint).to(roomTitle).emit("messageToClients", fullMsg);
     });
   });
 });
+
+function updateUsersInRoom(namespace, roomToJoin) {
+  // send back the number of users in this room to ALL sockets connected to this room
+  io.of(namespace.endpoint)
+    .in(roomToJoin)
+    .clients((error, clients) => {
+      io.of(namespace.endpoint)
+        .in(roomToJoin)
+        .emit("updateMembers", clients.length);
+    });
+}

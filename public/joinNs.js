@@ -7,9 +7,9 @@ function joinNS(endpoint) {
       .querySelector("#user-input")
       .removeEventListener("submit", formSubmission);
   }
+
   nsSocket = io(`http://localhost:8000${endpoint}`);
   nsSocket.on("nsRoomLoad", (nsRooms) => {
-    // console.log(nsRooms);
     let roomList = document.querySelector(".room-list");
     roomList.innerHTML = "";
     nsRooms.forEach((room) => {
@@ -21,17 +21,18 @@ function joinNS(endpoint) {
       }
       roomList.innerHTML += `<li class="room"><span class="glyphicon glyphicon-${glyph}"></span>${room.roomTitle}</li>`;
     });
+
     // add click listener to each room
     let roomNodes = document.getElementsByClassName("room");
     Array.from(roomNodes).forEach((elem) => {
       elem.addEventListener("click", (e) => {
-        joinRoom(e.target.innerText);
+        joinRoom(e.target.innerText); // join on user click
       });
     });
-    // add room automatically...first time here
+
     const topRoom = document.querySelector(".room");
     const topRoomName = topRoom.innerText;
-    joinRoom(topRoomName);
+    joinRoom(topRoomName); // join automatically on page load
   });
 
   // message received from server, post to client with UI

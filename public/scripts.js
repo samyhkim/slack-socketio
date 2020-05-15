@@ -4,10 +4,9 @@ let nsSocket = "";
 
 // listen for nsList, which is a list of all the namespaces
 socket.on("nsList", (nsData) => {
-  console.log("The list of namespaces has arrived.");
-  // console.log(nsData);
   let namespacesDiv = document.querySelector(".namespaces");
   namespacesDiv.innerHTML = "";
+  // populate UI with namespaces
   nsData.forEach((ns) => {
     namespacesDiv.innerHTML += `<div class="namespace" ns=${ns.endpoint}><img src="${ns.img}" /></div>`;
   });
@@ -19,5 +18,6 @@ socket.on("nsList", (nsData) => {
       joinNS(nsEndpoint); // join on user click
     });
   });
+
   joinNS("/wiki"); // join automatically on page load
 });
