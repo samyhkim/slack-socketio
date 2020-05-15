@@ -1,3 +1,4 @@
+// Client
 const socket = io("http://localhost:8000"); // the / namespace/endpoint
 let nsSocket = "";
 
@@ -12,13 +13,11 @@ socket.on("nsList", (nsData) => {
   });
 
   // add a click listener for each namespace
-  // console.log(document.getElementsByClassName("namespace"));
   Array.from(document.getElementsByClassName("namespace")).forEach((elem) => {
-    // console.log(elem);
     elem.addEventListener("click", (e) => {
       const nsEndpoint = elem.getAttribute("ns");
-      console.log(`${nsEndpoint} I should go to now`);
+      joinNS(nsEndpoint); // join on user click
     });
   });
-  joinNS("/wiki");
+  joinNS("/wiki"); // join automatically on page load
 });
