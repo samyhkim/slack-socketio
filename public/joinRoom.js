@@ -1,11 +1,8 @@
 function joinRoom(roomName) {
-  // Send this roomName to the server!
-  nsSocket.emit("joinRoom", roomName, (newNumberOfMembers) => {
-    // we want to update the room member total now that we have joined
-    document.querySelector(
-      ".curr-room-num-users"
-    ).innerHTML = `${newNumberOfMembers} <span class="glyphicon glyphicon-user"></span>`;
-  });
+  // send this roomName to the server!
+  nsSocket.emit("joinRoom", roomName);
+
+  // populate room's history with messages
   nsSocket.on("historyCatchUp", (history) => {
     console.log(history);
     const messagesUl = document.querySelector("#messages");
@@ -20,6 +17,7 @@ function joinRoom(roomName) {
     messagesUl.scrollTo(0, messagesUl.scrollHeight); // scroll to bottom of div
   });
 
+  // users-in-room UI
   nsSocket.on("updateMembers", (numMembers) => {
     document.querySelector(
       ".curr-room-num-users"
@@ -27,6 +25,7 @@ function joinRoom(roomName) {
     document.querySelector(".curr-room-text").innerText = `${roomName}`;
   });
 
+  // search bar functionality
   let searchBox = document.querySelector("#search-box");
   searchBox.addEventListener("input", (e) => {
     let messages = Array.from(document.getElementsByClassName("message-text"));
