@@ -1,5 +1,5 @@
 function joinNS(endpoint) {
-  const nsSocket = io(`http://localhost:8000${endpoint}`);
+  nsSocket = io(`http://localhost:8000${endpoint}`);
   nsSocket.on("nsRoomLoad", (nsRooms) => {
     // console.log(nsRooms);
     let roomList = document.querySelector(".room-list");
@@ -17,21 +17,47 @@ function joinNS(endpoint) {
     let roomNodes = document.getElementsByClassName("room");
     Array.from(roomNodes).forEach((elem) => {
       elem.addEventListener("click", (e) => {
-        console.log("Someone clicked on ", e.target.innerText);
+        // console.log("Someone clicked on ", e.target.innerText);
+        joinRoom(e.target.innerText);
       });
     });
+    // add room automatically...first time here
+    const topRoom = document.querySelector(".room");
+    const topRoomName = topRoom.innerText;
+    joinRoom(topRoomName);
   });
 
+  // message received from server, post to client with UI
   nsSocket.on("messageToClients", (msg) => {
-    connsole.log(msg);
-    document.querySelector("#message").innerHTML += `<li>${msg.text}</li>`;
+    // console.log(msg);
+    const newMsg = buildHTML(msg);
+    console.log(newMsg);
+    document.querySelector("#messages").innerHTML += newMsg;
   });
 
+  // send message to server
   document
     .querySelector(".message-form")
     .addEventListener("submit", (event) => {
       event.preventDefault();
       const newMessage = document.querySelector("#user-message").value;
-      socket.emit("newMessageToServer", { text: newMessage });
+      nsSocket.emit("newMessageToServer", { text: newMessage });
     });
+}
+
+function buildHTML(msg) {
+  const convertedDate = new Date(msg.time).toLocaleString();
+  const newHTML = `
+          <li>
+          <div class="user-image">
+            <img src="${msg.avatar}" />
+          </div>
+          <div class="user-message">
+            <div class="user-name-time">${msg.username} <span>${convertedDate}</span></div>
+            <div class="message-text">${msg.text}</div>
+          </div>
+        </li>
+        `;
+
+  return newHTML;
 }
